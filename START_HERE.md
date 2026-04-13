@@ -60,7 +60,7 @@ npm install
 
 Create `.env.local`:
 ```
-MONGODB_URI=mongodb://localhost:27017/nexuspro
+MONGODB_URI=mongodb://localhost:27017/masacoders
 JWT_SECRET=change-this-to-a-secure-random-string-minimum-32-chars
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -69,7 +69,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```bash
 npm run seed
 ```
-This creates admin user: `admin@nexuspro.com` / `Admin@123`
+This creates admin user: `info@masacoders.tech` / `Admin@123!`
 
 ### Step 3: Start Development (10 seconds)
 ```bash
@@ -187,8 +187,8 @@ npm start
 
 ### Option 3: Docker
 ```bash
-docker build -t nexuspro .
-docker run -p 3000:3000 nexuspro
+docker build -t masacoders .
+docker run -p 3000:3000 masacoders
 ```
 
 ---

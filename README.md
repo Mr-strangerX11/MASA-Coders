@@ -1,4 +1,4 @@
-# 🚀 NexusPro - Premium Business Website
+# 🚀 MASA Coders - Premium Business Website
 
 A **production-ready, premium business website** built with Next.js, React, and MongoDB. Features a modern frontend, powerful admin dashboard, and intelligent content publishing system.
 
@@ -99,7 +99,7 @@ A **production-ready, premium business website** built with Next.js, React, and 
 2. **Environment Setup**
    Create`.env.local`:
    ```
-   MONGODB_URI=mongodb://localhost:27017/nexuspro
+   MONGODB_URI=mongodb://localhost:27017/masacoders
    JWT_SECRET=your_secure_secret_key_min_32_chars
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    NODE_ENV=development
@@ -108,7 +108,7 @@ A **production-ready, premium business website** built with Next.js, React, and 
 3. **Seed Database**
    ```bash
    npm run seed
-   # Creates admin user: admin@nexuspro.com / Admin@123
+   # Creates admin user: info@masacoders.tech / Admin@123!
    ```
 
 4. **Start Development Server**
@@ -120,7 +120,7 @@ A **production-ready, premium business website** built with Next.js, React, and 
 5. **Login to Admin**
    ```
    URL: http://localhost:3000/admin/login
-   Email: admin@nexuspro.com
+   Email: info@masacoders.tech
    Password: Admin@123
    ```
 
@@ -129,7 +129,7 @@ A **production-ready, premium business website** built with Next.js, React, and 
 ## 📁 Project Structure
 
 ```
-nexuspro/
+masacoders/
 ├── src/
 │   ├── app/
 │   │   ├── (site)/                 # Public pages

@@ -26,7 +26,7 @@ async function seedAdmin() {
   const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
 
   // Remove stale admin accounts from old branding
-  await User.deleteMany({ email: { $in: ['admin@nexuspro.com', 'admin@masacoders.tech'] } });
+  await User.deleteMany({ email: { $in: ['admin@nexuspro.com'] } });
 
   const existing = await User.findOne({ email: adminEmail });
   if (existing) {

@@ -30,7 +30,7 @@ Your premium business website is built with:
 - [ ] Run initial seed: `npm run seed` (creates admin user)
 
 ### Admin Account
-- [ ] Default credentials: `admin@nexuspro.com / Admin@123`
+- [ ] Default credentials: `info@masacoders.tech / Admin@123!`
 - [ ] Change password immediately after first login
 - [ ] Update site settings with your branding
 

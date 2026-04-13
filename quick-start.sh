@@ -1,8 +1,8 @@
 #!/bin/bash
-# Quick Start Script for NexusPro Website
+# Quick Start Script for MASA Coders Website
 # Run this script to setup and start development in one command
 
-echo "🚀 NexusPro - Premium Business Website"
+echo "🚀 MASA Coders - Premium Business Website"
 echo "======================================"
 echo ""
 
@@ -23,7 +23,7 @@ npm install --legacy-peer-deps
 echo ""
 echo "🔧 Creating .env.local..."
 cat > .env.local << EOF
-MONGODB_URI=mongodb://localhost:27017/nexuspro
+MONGODB_URI=mongodb://localhost:27017/masacoders
 JWT_SECRET=your_very_secure_secret_key_min_32_characters_long_please_change_this
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NODE_ENV=development
@@ -45,7 +45,7 @@ echo "2. Update JWT_SECRET to a secure random string"
 echo "3. Start development: npm run dev"
 echo "4. Open http://localhost:3000 in your browser"
 echo "5. Admin: http://localhost:3000/admin/login"
-echo "   Email: admin@nexuspro.com"
+echo "   Email: info@masacoders.tech"
 echo "   Password: Admin@123"
 echo ""
 echo "📚 Documentation:"

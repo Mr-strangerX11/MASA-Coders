@@ -157,7 +157,7 @@ npm install
 ### 2. **Environment Configuration**
 Create `.env.local`:
 ```
-MONGODB_URI=mongodb://localhost:27017/nexuspro
+MONGODB_URI=mongodb://localhost:27017/masacoders
 JWT_SECRET=your_secure_key_32_chars_min
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -165,7 +165,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### 3. **Initialize Database**
 ```bash
 npm run seed
-# Creates admin: admin@nexuspro.com / Admin@123
+# Creates admin: info@masacoders.tech / Admin@123!
 ```
 
 ### 4. **Start Development**
@@ -177,8 +177,8 @@ npm run dev
 ### 5. **Access Admin**
 ```
 URL: http://localhost:3000/admin/login
-Email: admin@nexuspro.com
-Password: Admin@123
+Email: info@masacoders.tech
+Password: Admin@123!
 ```
 
 ---
