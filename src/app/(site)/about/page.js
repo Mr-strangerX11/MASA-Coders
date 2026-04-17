@@ -12,10 +12,10 @@ const values = [
 ];
 
 const team = [
-  { name: 'Alex Morgan',    role: 'CEO & Founder',         avatar: 'AM', gradient: 'from-blue-500 to-indigo-600' },
-  { name: 'Sophia Williams', role: 'Creative Director',    avatar: 'SW', gradient: 'from-purple-500 to-pink-600' },
-  { name: 'Daniel Chen',    role: 'Lead Developer',        avatar: 'DC', gradient: 'from-green-500 to-teal-600' },
-  { name: 'Priya Patel',    role: 'Head of Strategy',      avatar: 'PP', gradient: 'from-orange-500 to-red-600' },
+  { name: 'Kashi Chaudhary',          role: 'CEO & Founder',         avatar: 'KC', gradient: 'from-blue-500 to-indigo-600' },
+  { name: 'Rupa Yadav',               role: 'Creative Director',     avatar: 'RY', gradient: 'from-purple-500 to-pink-600' },
+  { name: 'Er. Abin Kumar Chaudhary', role: 'Lead Developer',        avatar: 'AC', gradient: 'from-green-500 to-teal-600' },
+  { name: 'Priya Patel',              role: 'Head of Strategy',      avatar: 'PP', gradient: 'from-orange-500 to-red-600' },
 ];
 
 export default function AboutPage() {
@@ -51,18 +51,18 @@ export default function AboutPage() {
                 Built on a Belief That <span className="gradient-text">Great Design Changes Everything</span>
               </h2>
               <div className="space-y-4 text-slate-600 leading-relaxed">
-                <p>Founded in 2016, MASA Coders was built on a single belief: great digital experiences change businesses. From our humble beginnings as a two-person studio, we've grown into a full-service digital agency serving clients across 20+ countries.</p>
+                <p>Founded in 2025, MASA Coders was built on a single belief: great digital experiences change businesses. From our humble beginnings as a two-person studio, we've grown into a full-service digital agency serving clients across 2+ countries.</p>
                 <p>We've always believed that the best digital products are born at the intersection of beautiful design and smart strategy. Every project we take on is treated as an opportunity to create something that not only looks extraordinary but drives real, measurable results.</p>
-                <p>Today, with a team of 25+ passionate experts, we continue to push the boundaries of what's possible in digital — helping ambitious businesses build their digital future.</p>
+                <p>Today, with a team of 7+ passionate experts, we continue to push the boundaries of what's possible in digital — helping ambitious businesses build their digital future.</p>
               </div>
             </div>
             <div className="relative">
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { value: '150+', label: 'Projects Delivered', color: 'bg-blue-500' },
-                  { value: '80+',  label: 'Happy Clients',      color: 'bg-purple-500' },
-                  { value: '20+',  label: 'Countries Served',   color: 'bg-green-500' },
-                  { value: '8+',   label: 'Years of Excellence', color: 'bg-amber-500' },
+                  { value: '15+', label: 'Projects Delivered', color: 'bg-blue-500' },
+                  { value: '4+',  label: 'Happy Clients',      color: 'bg-purple-500' },
+                  { value: '2+',  label: 'Countries Served',   color: 'bg-green-500' },
+                  { value: '7+',   label: 'Years of Excellence', color: 'bg-amber-500' },
                 ].map(({ value, label, color }) => (
                   <div key={label} className="card-premium p-6 text-center">
                     <div className={`w-2 h-2 rounded-full ${color} mx-auto mb-3`} />
