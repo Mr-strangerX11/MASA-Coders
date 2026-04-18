@@ -62,7 +62,7 @@ export default async function TestimonialsPage() {
 
           {/* Stats */}
           <div className="mt-12 flex flex-wrap justify-center gap-8">
-            {[['5.0★', 'Average Rating'], ['100%', 'Satisfaction Rate'], ['150+', 'Happy Clients']].map(([v, l]) => (
+            {[['5.0★', 'Average Rating'], ['100%', 'Satisfaction Rate'], ['4+', 'Happy Clients']].map(([v, l]) => (
               <div key={l} className="text-center">
                 <div className="text-3xl font-display font-bold gradient-text">{v}</div>
                 <div className="text-sm text-slate-500 mt-1">{l}</div>
