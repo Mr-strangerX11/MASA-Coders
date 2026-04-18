@@ -28,7 +28,13 @@ async function getData() {
       Testimonial.find({ isPublished: true, isFeatured: true }).sort({ order: 1 }).lean(),
     ]);
     
-    return { services, projects, offers, testimonials };
+    // Convert to JSON strings and back to ensure Date objects are serializable for Client Components
+    return {
+      services: JSON.parse(JSON.stringify(services)),
+      projects: JSON.parse(JSON.stringify(projects)),
+      offers: JSON.parse(JSON.stringify(offers)),
+      testimonials: JSON.parse(JSON.stringify(testimonials)),
+    };
   } catch (error) {
     console.error('Error fetching homepage data:', error);
     return { services: [], projects: [], offers: [], testimonials: [] };
