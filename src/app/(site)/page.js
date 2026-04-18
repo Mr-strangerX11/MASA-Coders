@@ -1,4 +1,4 @@
-export const revalidate = 30;
+export const revalidate = 3600; // Cache for 1 hour to reduce server load
 
 import Hero from '@/components/sections/Hero';
 import FeaturedServices from '@/components/sections/FeaturedServices';

@@ -42,7 +42,7 @@ export default function Hero({
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.3 }}
             className="flex justify-center mb-8"
           >
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-blue-300 font-medium">
@@ -56,7 +56,7 @@ export default function Hero({
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
+            transition={{ duration: 0.4, delay: 0.05 }}
             className="text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-white leading-tight"
           >
             {headline.split(' ').map((word, i, arr) => {
@@ -76,7 +76,7 @@ export default function Hero({
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.25 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
             className="mt-6 text-center text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed"
           >
             {subheadline}
