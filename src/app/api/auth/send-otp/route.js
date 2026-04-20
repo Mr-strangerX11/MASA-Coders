@@ -1,4 +1,4 @@
-import { connectDB } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
@@ -31,14 +31,36 @@ export async function POST(request) {
     user.otpExpiry = otpExpiry;
     await user.save();
 
-    // Send OTP via email
-    const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+    // Configure email transporter
+    const transporterConfig = process.env.EMAIL_HOST
+      ? {
+          host: process.env.EMAIL_HOST,
+          port: parseInt(process.env.EMAIL_PORT || '587'),
+          secure: process.env.EMAIL_SECURE === 'true',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+          logger: true,
+          debug: true,
+        }
+      : {
+          service: process.env.EMAIL_SERVICE || 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        };
+
+    const transporter = nodemailer.createTransport(transporterConfig);
+
+    // Verify transporter connection
+    try {
+      await transporter.verify();
+    } catch (verifyError) {
+      console.error('Email transporter verification failed:', verifyError.message);
+      throw new Error(`Email service unavailable: ${verifyError.message}`);
+    }
 
     const mailOptions = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
@@ -87,16 +109,21 @@ export async function POST(request) {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (emailError) {
+      console.error('Email sending error:', emailError.message || emailError);
+      throw emailError;
+    }
 
     return Response.json(
       { message: 'OTP sent successfully' },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Send OTP error:', error);
+    console.error('Send OTP error:', error.message || error);
     return Response.json(
-      { error: 'Failed to send OTP' },
+      { error: error.message || 'Failed to send OTP' },
       { status: 500 }
     );
   }

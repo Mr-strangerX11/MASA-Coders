@@ -212,7 +212,9 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2.5 mb-4">
-            <Image src="/logo.png" alt="MASA Coders" width={48} height={48} style={{ width: 'auto', height: 'auto' }} />
+            <div className="w-12 h-12 relative">
+              <Image src="/logo.png" alt="MASA Coders" fill sizes="48px" style={{ objectFit: 'contain' }} />
+            </div>
             <span className="font-display font-bold text-2xl text-white">
               MASA <span className="text-blue-500">Coders</span>
             </span>
