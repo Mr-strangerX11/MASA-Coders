@@ -109,7 +109,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2.5 mb-5 group">
-              <Image src="/logo.png" alt="MASA Coders" width={40} height={40} />
+              <Image src="/logo.png" alt="MASA Coders" width={40} height={40} style={{ width: 'auto', height: 'auto' }} />
               <span className="font-display font-bold text-xl text-white">
                 MASA <span className="text-blue-500">Coders</span>
               </span>

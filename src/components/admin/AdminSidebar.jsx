@@ -36,7 +36,7 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div className="px-5 h-16 flex items-center border-b border-white/5">
         <Link href="/" target="_blank" className="flex items-center gap-2 group">
-          <Image src="/logo.png" alt="MASA Coders" width={32} height={32} />
+          <Image src="/logo.png" alt="MASA Coders" width={32} height={32} style={{ width: 'auto', height: 'auto' }} />
           <div>
             <span className="font-display font-bold text-white text-base">MASA Coders</span>
             <span className="block text-[10px] text-slate-600 -mt-0.5">Admin Panel</span>

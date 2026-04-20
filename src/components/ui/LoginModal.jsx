@@ -138,6 +138,20 @@ export default function LoginModal({ isOpen, onClose }) {
                   </motion.div>
                 )}
 
+                {/* Forgot Password Link */}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      router.push('/admin/forgot-password');
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+
                 {/* Login Button */}
                 <button
                   type="submit"

@@ -44,8 +44,8 @@ async function verifyAdminToken(token) {
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Allow the login page through without auth
-  if (pathname === '/admin/login') {
+  // Allow the login and forgot-password pages through without auth
+  if (pathname === '/admin/login' || pathname === '/admin/forgot-password') {
     // If already logged in, redirect to dashboard
     const token = request.cookies.get('admin_token')?.value;
     if (token && (await verifyAdminToken(token))) {

@@ -22,6 +22,7 @@ function LoginForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
+        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || 'Invalid email or password'); return; }
@@ -29,7 +30,8 @@ function LoginForm() {
       const from = searchParams.get('from') || '/admin/dashboard';
       router.push(from);
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error('Login error:', error);
       toast.error('Connection error. Please try again.');
     } finally {
       setLoading(false);
@@ -89,6 +91,12 @@ function LoginForm() {
           </span>
         ) : 'Sign In to Dashboard'}
       </button>
+
+      <div className="text-center mt-4">
+        <a href="/admin/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+          Forgot Password?
+        </a>
+      </div>
     </form>
   );
 }
@@ -107,7 +115,7 @@ export default function AdminLoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2.5 mb-4">
-            <Image src="/logo.png" alt="MASA Coders" width={48} height={48} />
+            <Image src="/logo.png" alt="MASA Coders" width={48} height={48} style={{ width: 'auto', height: 'auto' }} />
             <span className="font-display font-bold text-2xl text-white">
               MASA <span className="text-blue-500">Coders</span>
             </span>

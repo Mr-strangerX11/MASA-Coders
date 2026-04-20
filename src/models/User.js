@@ -8,6 +8,10 @@ const UserSchema = new mongoose.Schema({
   role:     { type: String, enum: ['admin', 'editor'], default: 'admin' },
   avatar:   { type: String, default: '' },
   isActive: { type: Boolean, default: true },
+  resetPasswordToken: { type: String, default: null },
+  resetPasswordExpiry: { type: Date, default: null },
+  otp:      { type: String, default: null },
+  otpExpiry: { type: Date, default: null },
 }, { timestamps: true });
 
 UserSchema.pre('save', async function (next) {
