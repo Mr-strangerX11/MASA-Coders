@@ -4,6 +4,7 @@ import Inquiry from '@/models/Inquiry';
 import { verifyToken } from '@/lib/auth';
 import { sendEmail } from '@/lib/email';
 import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rateLimit';
 
 function isAdmin() {
   const cookieStore = cookies();
@@ -37,6 +38,12 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
+    const { allowed, resetIn } = rateLimit(`inquiry:${ip}`, { limit: 3, windowMs: 60_000 });
+    if (!allowed) {
+      return NextResponse.json({ error: `Too many requests. Please wait ${resetIn}s before trying again.` }, { status: 429 });
+    }
+
     await connectDB();
     const data = await request.json();
     const { name, email, message } = data;
@@ -47,7 +54,6 @@ export async function POST(request) {
       }, { status: 400 });
     }
     
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '';
     const inquiry = await Inquiry.create({ ...data, ip });
 
     // Send thank you email to the user

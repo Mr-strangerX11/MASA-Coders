@@ -2,9 +2,16 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Subscription from '@/models/Subscription';
 import { sendEmail } from '@/lib/email';
+import { rateLimit } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
+    const { allowed, resetIn } = rateLimit(`subscribe:${ip}`, { limit: 3, windowMs: 60_000 });
+    if (!allowed) {
+      return NextResponse.json({ error: `Too many requests. Please wait ${resetIn}s.` }, { status: 429 });
+    }
+
     await connectDB();
     const { name, email } = await request.json();
 

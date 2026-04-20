@@ -4,14 +4,21 @@ import { notFound } from 'next/navigation';
 import { FiArrowLeft, FiExternalLink, FiCalendar, FiUser } from 'react-icons/fi';
 import ContactCTA from '@/components/sections/ContactCTA';
 import { formatDate } from '@/lib/utils';
+import connectDB from '@/lib/mongodb';
+import Project from '@/models/Project';
 
 async function getProject(id) {
   try {
-    const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${base}/api/projects/${id}`, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
-    const { project } = await res.json();
-    return project;
+    await connectDB();
+    const project = await Project.findOne({
+      $or: [
+        { _id: id.length === 24 ? id : null },
+        { slug: id },
+      ],
+      status: { $in: ['published', 'featured'] },
+    }).lean();
+    if (!project) return null;
+    return JSON.parse(JSON.stringify(project));
   } catch { return null; }
 }
 

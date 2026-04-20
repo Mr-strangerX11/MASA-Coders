@@ -13,18 +13,24 @@ const STATUS_COLORS = {
   archived:  'status-archived',
 };
 
-export default function AdminProjectsPage() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading]   = useState(true);
+const PAGE_SIZE = 10;
 
-  const fetchProjects = async () => {
-    const res = await fetch('/api/projects?admin=true');
+export default function AdminProjectsPage() {
+  const [projects, setProjects]   = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [page, setPage]           = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchProjects = async (p = page) => {
+    setLoading(true);
+    const res = await fetch(`/api/projects?admin=true&limit=${PAGE_SIZE}&page=${p}`);
     const data = await res.json();
     setProjects(data.projects || []);
+    setTotalPages(data.pages || 1);
     setLoading(false);
   };
 
-  useEffect(() => { fetchProjects(); }, []);
+  useEffect(() => { fetchProjects(page); }, [page]);
 
   const updateStatus = async (id, status) => {
     const res = await fetch(`/api/projects/${id}`, {
@@ -32,7 +38,7 @@ export default function AdminProjectsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
-    if (res.ok) { toast.success('Status updated'); fetchProjects(); }
+    if (res.ok) { toast.success('Status updated'); fetchProjects(page); }
     else toast.error('Update failed');
   };
 
@@ -42,13 +48,13 @@ export default function AdminProjectsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isFeatured: !isFeatured }),
     });
-    if (res.ok) { toast.success(isFeatured ? 'Removed from featured' : 'Marked as featured'); fetchProjects(); }
+    if (res.ok) { toast.success(isFeatured ? 'Removed from featured' : 'Marked as featured'); fetchProjects(page); }
   };
 
   const deleteProject = async (id) => {
     if (!confirm('Delete this project? This cannot be undone.')) return;
     const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
-    if (res.ok) { toast.success('Project deleted'); fetchProjects(); }
+    if (res.ok) { toast.success('Project deleted'); fetchProjects(page); }
     else toast.error('Delete failed');
   };
 
@@ -76,6 +82,7 @@ export default function AdminProjectsPage() {
       ) : (
         <div className="bg-white/5 border border-white/8 rounded-2xl overflow-hidden">
           <table className="w-full">
+
             <thead>
               <tr className="border-b border-white/8">
                 <th className="text-left px-5 py-3.5 text-xs font-medium text-slate-500 uppercase tracking-wider">Project</th>
@@ -156,6 +163,15 @@ export default function AdminProjectsPage() {
               ))}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-5 py-4 border-t border-white/8">
+              <span className="text-xs text-slate-500">Page {page} of {totalPages}</span>
+              <div className="flex gap-2">
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs disabled:opacity-40 hover:bg-white/10 transition-colors">← Prev</button>
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs disabled:opacity-40 hover:bg-white/10 transition-colors">Next →</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

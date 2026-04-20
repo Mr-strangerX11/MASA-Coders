@@ -19,4 +19,8 @@ const BlogPostSchema = new mongoose.Schema({
   publishedAt: { type: Date },
 }, { timestamps: true });
 
+BlogPostSchema.index({ status: 1, publishedAt: -1 });
+BlogPostSchema.index({ category: 1, status: 1 });
+BlogPostSchema.index({ isFeatured: 1, status: 1 });
+
 export default mongoose.models.BlogPost || mongoose.model('BlogPost', BlogPostSchema);

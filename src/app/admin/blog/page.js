@@ -3,28 +3,35 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
 import { slugify, formatDate } from '@/lib/utils';
+import ImageUpload from '@/components/ui/ImageUpload';
 
 const inputClass = 'w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-blue-500 transition-colors';
 const labelClass = 'block text-xs font-medium text-slate-400 mb-1';
+
+const PAGE_SIZE = 10;
 
 export default function AdminBlogPage() {
   const [posts, setPosts]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm]       = useState(null);
+  const [page, setPage]       = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetch_ = async () => {
-    const res  = await fetch('/api/blog?admin=true&limit=50');
+  const fetch_ = async (p = page) => {
+    setLoading(true);
+    const res  = await fetch(`/api/blog?admin=true&limit=${PAGE_SIZE}&page=${p}`);
     const data = await res.json();
     setPosts(data.posts || []);
+    setTotalPages(data.pages || 1);
     setLoading(false);
   };
 
-  useEffect(() => { fetch_(); }, []);
+  useEffect(() => { fetch_(page); }, [page]);
 
   const deletePost = async (id) => {
     if (!confirm('Delete this post?')) return;
     await fetch(`/api/blog/${id}`, { method:'DELETE' });
-    toast.success('Deleted'); fetch_();
+    toast.success('Deleted'); fetch_(page);
   };
 
   const handleSave = async (e) => {
@@ -33,7 +40,7 @@ export default function AdminBlogPage() {
     const url    = form._id ? `/api/blog/${form._id}` : '/api/blog';
     const payload = { ...form, tags: form.tags?.split(',').map(t=>t.trim()).filter(Boolean) };
     const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    if (res.ok) { toast.success(form._id ? 'Updated' : 'Created'); setForm(null); fetch_(); }
+    if (res.ok) { toast.success(form._id ? 'Updated' : 'Created'); setForm(null); fetch_(1); setPage(1); }
     else toast.error('Failed to save');
   };
 
@@ -57,7 +64,13 @@ export default function AdminBlogPage() {
             <div><label className={labelClass}>Read Time (min)</label><input type="number" value={form.readTime||5} onChange={e=>setForm({...form,readTime:+e.target.value})} min={1} className={inputClass}/></div>
           </div>
           <div><label className={labelClass}>Tags (comma separated)</label><input value={form.tags||''} onChange={e=>setForm({...form,tags:e.target.value})} placeholder="design, seo, marketing" className={inputClass}/></div>
-          <div><label className={labelClass}>Thumbnail URL</label><input type="url" value={form.thumbnail||''} onChange={e=>setForm({...form,thumbnail:e.target.value})} className={inputClass}/></div>
+          <ImageUpload
+            label="Thumbnail"
+            value={form.thumbnail || ''}
+            onChange={(url) => setForm({ ...form, thumbnail: url })}
+            folder="masa-coders/blog"
+            aspectRatio="16/9"
+          />
           <div><label className={labelClass}>Excerpt</label><textarea rows={2} value={form.excerpt||''} onChange={e=>setForm({...form,excerpt:e.target.value})} maxLength={300} className={`${inputClass} resize-none`}/></div>
           <div><label className={labelClass}>Content *</label><textarea rows={12} value={form.content||''} onChange={e=>setForm({...form,content:e.target.value})} required placeholder="Write your blog post content here..." className={`${inputClass} resize-none font-mono text-xs`}/></div>
           <div className="grid grid-cols-2 gap-4">
@@ -87,31 +100,42 @@ export default function AdminBlogPage() {
           {posts.length === 0 ? (
             <div className="text-center py-20"><p className="text-slate-400 mb-4">No posts yet</p><button onClick={() => setForm(blank)} className="btn-primary"><FiPlus className="w-4 h-4"/> Create First Post</button></div>
           ) : (
-            <table className="w-full">
-              <thead><tr className="border-b border-white/8">{['Title','Category','Status','Views','Date','Actions'].map(h=><th key={h} className="text-left px-5 py-3.5 text-xs font-medium text-slate-500 uppercase tracking-wider">{h}</th>)}</tr></thead>
-              <tbody className="divide-y divide-white/5">
-                {posts.map(p => (
-                  <tr key={p._id} className="hover:bg-white/3 transition-colors">
-                    <td className="px-5 py-4">
-                      <p className="text-white text-sm font-medium max-w-xs truncate">{p.title}</p>
-                      {p.isFeatured && <span className="badge bg-amber-500/20 text-amber-300 text-xs border border-amber-500/30 mt-0.5">Featured</span>}
-                    </td>
-                    <td className="px-5 py-4 text-slate-400 text-sm">{p.category}</td>
-                    <td className="px-5 py-4">
-                      <span className={`badge text-xs ${p.status==='published'?'status-published':p.status==='archived'?'status-archived':'status-draft'}`}>{p.status}</span>
-                    </td>
-                    <td className="px-5 py-4 text-slate-400 text-sm">{p.views||0}</td>
-                    <td className="px-5 py-4 text-slate-500 text-xs">{formatDate(p.createdAt,{month:'short',day:'numeric',year:'numeric'})}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex gap-2">
-                        <button onClick={() => setForm({...p, tags:(p.tags||[]).join(', ')})} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors"><FiEdit2 className="w-4 h-4"/></button>
-                        <button onClick={() => deletePost(p._id)} className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"><FiTrash2 className="w-4 h-4"/></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <>
+              <table className="w-full">
+                <thead><tr className="border-b border-white/8">{['Title','Category','Status','Views','Date','Actions'].map(h=><th key={h} className="text-left px-5 py-3.5 text-xs font-medium text-slate-500 uppercase tracking-wider">{h}</th>)}</tr></thead>
+                <tbody className="divide-y divide-white/5">
+                  {posts.map(p => (
+                    <tr key={p._id} className="hover:bg-white/3 transition-colors">
+                      <td className="px-5 py-4">
+                        <p className="text-white text-sm font-medium max-w-xs truncate">{p.title}</p>
+                        {p.isFeatured && <span className="badge bg-amber-500/20 text-amber-300 text-xs border border-amber-500/30 mt-0.5">Featured</span>}
+                      </td>
+                      <td className="px-5 py-4 text-slate-400 text-sm">{p.category}</td>
+                      <td className="px-5 py-4">
+                        <span className={`badge text-xs ${p.status==='published'?'status-published':p.status==='archived'?'status-archived':'status-draft'}`}>{p.status}</span>
+                      </td>
+                      <td className="px-5 py-4 text-slate-400 text-sm">{p.views||0}</td>
+                      <td className="px-5 py-4 text-slate-500 text-xs">{formatDate(p.createdAt,{month:'short',day:'numeric',year:'numeric'})}</td>
+                      <td className="px-5 py-4">
+                        <div className="flex gap-2">
+                          <button onClick={() => setForm({...p, tags:(p.tags||[]).join(', ')})} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors"><FiEdit2 className="w-4 h-4"/></button>
+                          <button onClick={() => deletePost(p._id)} className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"><FiTrash2 className="w-4 h-4"/></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-5 py-4 border-t border-white/8">
+                  <span className="text-xs text-slate-500">Page {page} of {totalPages}</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs disabled:opacity-40 hover:bg-white/10 transition-colors">← Prev</button>
+                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs disabled:opacity-40 hover:bg-white/10 transition-colors">Next →</button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

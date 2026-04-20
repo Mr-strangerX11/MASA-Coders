@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import Image from 'next/image';
-import { FiArrowLeft, FiSave, FiUpload, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiSave } from 'react-icons/fi';
+import ImageUpload from '@/components/ui/ImageUpload';
 
 const inputClass = 'w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-blue-500 transition-colors';
 const labelClass = 'block text-sm font-medium text-slate-300 mb-1.5';
@@ -14,46 +14,14 @@ export default function EditProjectPage() {
   const router  = useRouter();
   const [loading, setLoading] = useState(false);
   const [form, setForm]       = useState(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState('');
 
   useEffect(() => {
     fetch(`/api/projects/${id}?admin=true`).then((r) => r.json()).then(({ project }) => {
-      if (project) {
-        setForm({ ...project, technologies: (project.technologies || []).join(', ') });
-        if (project.thumbnail) setThumbnailPreview(project.thumbnail);
-      }
+      if (project) setForm({ ...project, technologies: (project.technologies || []).join(', ') });
     });
   }, [id]);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
-
-  const handleThumbnailUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64String = event.target?.result;
-      setThumbnailPreview(base64String);
-      setForm((f) => ({ ...f, thumbnail: base64String }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const clearThumbnail = () => {
-    setThumbnailPreview('');
-    setForm((f) => ({ ...f, thumbnail: '' }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,66 +68,12 @@ export default function EditProjectPage() {
             </div>
           </div>
 
-          <div>
-            <label className={labelClass}>Project Thumbnail *</label>
-            <div className="space-y-3">
-              {/* File Upload */}
-              <div className="relative">
-                <input
-                  type="file"
-                  id="thumbnail-upload"
-                  accept="image/*"
-                  onChange={handleThumbnailUpload}
-                  className="hidden"
-                />
-                <label
-                  htmlFor="thumbnail-upload"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 border-dashed text-white cursor-pointer hover:bg-white/8 transition-colors"
-                >
-                  <FiUpload className="w-4 h-4" />
-                  <span className="text-sm">Click to upload new thumbnail</span>
-                </label>
-                <p className="text-xs text-slate-500 mt-1">Supported: JPG, PNG, WebP (Max 5MB)</p>
-              </div>
-
-              {/* Preview */}
-              {thumbnailPreview && (
-                <div className="relative w-full h-40 rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
-                  <Image src={thumbnailPreview} alt="preview" fill className="object-cover" unoptimized />
-                  <button
-                    type="button"
-                    onClick={clearThumbnail}
-                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-600/90 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <FiX className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="text-xs text-slate-500">OR</span>
-                <div className="flex-1 h-px bg-white/10" />
-              </div>
-
-              {/* URL Input as alternative */}
-              <div>
-                <label className={`${labelClass} text-xs`}>Paste Image URL</label>
-                <input
-                  type="url"
-                  value={form.thumbnail && !form.thumbnail.startsWith('data:') ? form.thumbnail : ''}
-                  onChange={(e) => {
-                    setForm((f) => ({ ...f, thumbnail: e.target.value }));
-                    if (e.target.value) {
-                      setThumbnailPreview(e.target.value);
-                    }
-                  }}
-                  placeholder="https://..."
-                  className={inputClass}
-                />
-              </div>
-            </div>
-          </div>
+          <ImageUpload
+            label="Project Thumbnail"
+            value={form.thumbnail}
+            onChange={(url) => setForm((f) => ({ ...f, thumbnail: url }))}
+            folder="masa-coders/projects"
+          />
 
           <div>
             <label className={labelClass}>Short Description *</label>

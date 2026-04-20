@@ -24,5 +24,7 @@ const ProjectSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 ProjectSchema.index({ status: 1, isFeatured: 1 });
+ProjectSchema.index({ category: 1, status: 1 });
+ProjectSchema.index({ order: 1, status: 1 });
 
 export default mongoose.models.Project || mongoose.model('Project', ProjectSchema);

@@ -29,6 +29,8 @@ export async function GET() {
       totalPosts, publishedPosts,
       totalServices, visibleServices,
       recentInquiries,
+      totalViewsAgg,
+      topPosts,
     ] = await Promise.all([
       Project.countDocuments(),
       Project.countDocuments({ status: { $in: ['published', 'featured'] } }),
@@ -44,6 +46,8 @@ export async function GET() {
       Service.countDocuments(),
       Service.countDocuments({ isVisible: true }),
       Inquiry.find({ isRead: false }).sort({ createdAt: -1 }).limit(5),
+      BlogPost.aggregate([{ $group: { _id: null, total: { $sum: '$views' } } }]),
+      BlogPost.find({ status: 'published' }).sort({ views: -1 }).limit(5).select('title slug views'),
     ]);
 
     return NextResponse.json({
@@ -51,9 +55,10 @@ export async function GET() {
       offers:   { total: totalOffers, active: activeOffers },
       testimonials: { total: totalTestimonials, published: publishedTestimonials },
       inquiries: { total: totalInquiries, unread: unreadInquiries },
-      blog: { total: totalPosts, published: publishedPosts },
+      blog: { total: totalPosts, published: publishedPosts, totalViews: totalViewsAgg[0]?.total || 0 },
       services: { total: totalServices, visible: visibleServices },
       recentInquiries,
+      topPosts,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

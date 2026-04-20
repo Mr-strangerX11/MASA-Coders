@@ -3,18 +3,21 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FiArrowLeft, FiClock, FiCalendar, FiUser } from 'react-icons/fi';
 import { formatDate } from '@/lib/utils';
+import connectDB from '@/lib/mongodb';
+import BlogPost from '@/models/BlogPost';
 
-export const revalidate = 60; // ISR: revalidate every 60 seconds
+export const revalidate = 60;
 
 async function getBlogPost(id) {
   try {
-    const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${base}/api/blog/${id}`, {
-      cache: 'no-store',
-      headers: { Accept: 'application/json' },
-    });
-    if (!res.ok) return null;
-    return await res.json().catch(() => null);
+    await connectDB();
+    const post = await BlogPost.findOne({
+      $or: [{ slug: id }, { _id: id.length === 24 ? id : null }],
+      status: 'published',
+    }).lean();
+    if (!post) return null;
+    await BlogPost.findByIdAndUpdate(post._id, { $inc: { views: 1 } });
+    return JSON.parse(JSON.stringify(post));
   } catch {
     return null;
   }
@@ -22,14 +25,16 @@ async function getBlogPost(id) {
 
 async function getRelatedPosts(id, category, limit = 3) {
   try {
-    const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${base}/api/blog?category=${category}&limit=${limit}`, {
-      next: { revalidate: 60 },
-      headers: { Accept: 'application/json' },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.posts || []).filter((p) => p._id !== id).slice(0, limit);
+    await connectDB();
+    const posts = await BlogPost.find({
+      status: 'published',
+      category,
+      _id: { $ne: id },
+    })
+      .sort({ publishedAt: -1 })
+      .limit(limit)
+      .lean();
+    return JSON.parse(JSON.stringify(posts));
   } catch {
     return [];
   }

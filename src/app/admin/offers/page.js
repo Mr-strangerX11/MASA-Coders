@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiToggleLeft, FiToggleRight, FiMessageSquare } from 'react-icons/fi';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminOffersPage() {
@@ -22,6 +22,12 @@ export default function AdminOffersPage() {
   const toggleActive = async (id, isActive) => {
     await fetch(`/api/offers/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: !isActive }) });
     toast.success(`Offer ${isActive ? 'deactivated' : 'activated'}`);
+    fetchOffers();
+  };
+
+  const togglePopup = async (id, showPopup) => {
+    await fetch(`/api/offers/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ showPopup: !showPopup }) });
+    toast.success(`Popup ${showPopup ? 'disabled' : 'enabled'}`);
     fetchOffers();
   };
 
@@ -81,10 +87,35 @@ export default function AdminOffersPage() {
             <div><label className={labelClass}>Start Date *</label><input type="date" value={form.startDate?.split('T')[0] || ''} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required className={inputClass} /></div>
             <div><label className={labelClass}>End Date *</label><input type="date" value={form.endDate?.split('T')[0] || ''} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required className={inputClass} /></div>
           </div>
-          <div className="flex gap-6">
-            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="accent-blue-600" /><span className="text-slate-300 text-sm">Active</span></label>
-            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="accent-blue-600" /><span className="text-slate-300 text-sm">Featured on Homepage</span></label>
-            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.showPopup} onChange={(e) => setForm({ ...form, showPopup: e.target.checked })} className="accent-blue-600" /><span className="text-slate-300 text-sm">Show Popup</span></label>
+          <div className="space-y-3 pt-1">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Visibility</p>
+            <div className="flex flex-wrap gap-5">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="accent-blue-600 w-4 h-4" />
+                <span className="text-slate-300 text-sm">Active</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="accent-amber-500 w-4 h-4" />
+                <span className="text-slate-300 text-sm">Featured on Homepage</span>
+              </label>
+            </div>
+            <div className={`flex items-start gap-3 p-4 rounded-xl border transition-colors ${form.showPopup ? 'bg-purple-500/10 border-purple-500/30' : 'bg-white/3 border-white/8'}`}>
+              <input
+                type="checkbox"
+                id="showPopup"
+                checked={form.showPopup}
+                onChange={(e) => setForm({ ...form, showPopup: e.target.checked })}
+                className="accent-purple-500 w-4 h-4 mt-0.5 cursor-pointer"
+              />
+              <label htmlFor="showPopup" className="cursor-pointer">
+                <p className={`text-sm font-medium ${form.showPopup ? 'text-purple-300' : 'text-slate-300'}`}>
+                  Show as Popup on site
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Visitors will see this offer as a popup 2.5s after the page loads. Only one popup shows at a time — the first active offer with this enabled wins.
+                </p>
+              </label>
+            </div>
           </div>
           <div className="flex gap-4 pt-2">
             <button type="submit" className="btn-primary">Save Offer</button>
@@ -120,20 +151,28 @@ export default function AdminOffersPage() {
               <div key={offer._id} className="bg-white/5 border border-white/8 rounded-2xl p-5 flex items-center gap-4">
                 <div className="w-3 h-12 rounded-full shrink-0" style={{ backgroundColor: offer.color || '#2563eb' }} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <h3 className="text-white font-medium">{offer.title}</h3>
                     {offer.discount && <span className="badge bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs">{offer.discount}</span>}
                     {offer.isFeatured && <span className="badge bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs">Featured</span>}
                     {expired ? <span className="badge bg-red-500/20 text-red-400 border border-red-500/30 text-xs">Expired</span>
                       : active ? <span className="badge bg-green-500/20 text-green-400 border border-green-500/30 text-xs">Active</span>
                       : <span className="badge bg-slate-500/20 text-slate-400 border border-slate-500/30 text-xs">Inactive</span>}
+                    {offer.showPopup && <span className="badge bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs flex items-center gap-1"><FiMessageSquare className="w-3 h-3" />Popup ON</span>}
                   </div>
                   <p className="text-slate-500 text-xs">
                     {formatDate(offer.startDate, { month: 'short', day: 'numeric' })} — {formatDate(offer.endDate, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={() => toggleActive(offer._id, offer.isActive)} className={`p-1.5 rounded-lg transition-colors ${offer.isActive ? 'text-green-400 bg-green-400/10' : 'text-slate-500 hover:text-green-400 hover:bg-green-400/10'}`}>
+                  <button
+                    onClick={() => togglePopup(offer._id, offer.showPopup)}
+                    title={offer.showPopup ? 'Disable popup' : 'Enable popup'}
+                    className={`p-1.5 rounded-lg transition-colors ${offer.showPopup ? 'text-purple-400 bg-purple-400/10' : 'text-slate-500 hover:text-purple-400 hover:bg-purple-400/10'}`}
+                  >
+                    <FiMessageSquare className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => toggleActive(offer._id, offer.isActive)} title={offer.isActive ? 'Deactivate' : 'Activate'} className={`p-1.5 rounded-lg transition-colors ${offer.isActive ? 'text-green-400 bg-green-400/10' : 'text-slate-500 hover:text-green-400 hover:bg-green-400/10'}`}>
                     {offer.isActive ? <FiToggleRight className="w-5 h-5" /> : <FiToggleLeft className="w-5 h-5" />}
                   </button>
                   <button onClick={() => setForm({ ...offer, startDate: offer.startDate?.split('T')[0], endDate: offer.endDate?.split('T')[0] })} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors"><FiEdit2 className="w-4 h-4" /></button>
