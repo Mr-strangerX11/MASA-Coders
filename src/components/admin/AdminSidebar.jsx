@@ -5,12 +5,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
   FiGrid, FiBriefcase, FiTag, FiSettings, FiMessageSquare,
-  FiUsers, FiFileText, FiLogOut, FiGlobe, FiStar
+  FiUsers, FiFileText, FiLogOut, FiGlobe, FiStar, FiInbox
 } from 'react-icons/fi';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { label: 'Dashboard',    href: '/admin/dashboard',    icon: FiGrid },
+  { label: 'Inbox',        href: '/admin/inbox',        icon: FiInbox },
+  { label: 'CRM',          href: '/admin/crm',          icon: FiUsers },
   { label: 'Projects',     href: '/admin/projects',     icon: FiBriefcase },
   { label: 'Offers',       href: '/admin/offers',       icon: FiTag },
   { label: 'Services',     href: '/admin/services',     icon: FiGlobe },
