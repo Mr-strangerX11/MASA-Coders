@@ -7,7 +7,14 @@ import { getInitials } from '@/lib/utils';
 import connectDB from '@/lib/mongodb';
 import Testimonial from '@/models/Testimonial';
 
-export const metadata = { title: 'Testimonials' };
+export const metadata = {
+  title: 'Testimonials',
+  description: 'Real reviews from real clients. See why businesses trust MASA Coders to transform their digital presence with a 5.0 average rating.',
+  openGraph: {
+    title: 'Client Testimonials — MASA Coders',
+    description: 'Real words from real clients who trusted us to transform their digital presence.',
+  },
+};
 
 async function getTestimonials() {
   try {

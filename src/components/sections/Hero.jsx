@@ -103,12 +103,25 @@ export default function Hero({
             </Link>
           </motion.div>
 
+          {/* Client Portal CTA */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.55 }}
+            className="mt-5 flex items-center justify-center gap-2"
+          >
+            <span className="text-slate-500 text-sm">Already a client?</span>
+            <Link href="/client/login" className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition-colors">
+              Access your portal <FiArrowRight className="w-3.5 h-3.5"/>
+            </Link>
+          </motion.div>
+
           {/* Trust badges */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-slate-500"
+            className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-slate-500"
           >
             {['No hidden fees', 'Free consultation', '100% satisfaction guarantee', 'On-time delivery'].map((item) => (
               <div key={item} className="flex items-center gap-1.5">

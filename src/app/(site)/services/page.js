@@ -7,7 +7,14 @@ import connectDB from '@/lib/mongodb';
 import Service from '@/models/Service';
 import SectionHeader from '@/components/ui/SectionHeader';
 
-export const metadata = { title: 'Services' };
+export const metadata = {
+  title: 'Services',
+  description: 'End-to-end digital solutions — web design, mobile apps, e-commerce, SEO, digital marketing, and brand identity. Starting from Rs. 14,999.',
+  openGraph: {
+    title: 'Our Services — MASA Coders',
+    description: 'End-to-end digital solutions crafted to grow your business and exceed your goals.',
+  },
+};
 
 const iconMap = { FiCode, FiSmartphone, FiLayout, FiTrendingUp, FiSearch, FiZap, FiShoppingCart, FiBriefcase };
 

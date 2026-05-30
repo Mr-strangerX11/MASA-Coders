@@ -8,7 +8,14 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 
-export const metadata = { title: 'Projects' };
+export const metadata = {
+  title: 'Projects',
+  description: 'Browse our portfolio of premium websites, mobile apps, and digital experiences. Each project tells a story of collaboration, creativity, and measurable impact.',
+  openGraph: {
+    title: 'Our Work — MASA Coders Portfolio',
+    description: 'Premium websites, mobile apps, and digital experiences built to drive real business results.',
+  },
+};
 
 const placeholder = [
   { _id: '1', slug: '1', title: 'E-commerce Platform Redesign', category: 'Web Development', shortDesc: 'Complete redesign of a 7-figure e-commerce store resulting in 45% increase in conversions.', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80', technologies: ['Next.js', 'Tailwind', 'Stripe'] },

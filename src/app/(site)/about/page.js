@@ -2,7 +2,14 @@ import { FiTarget, FiEye, FiUsers, FiAward } from 'react-icons/fi';
 import ContactCTA from '@/components/sections/ContactCTA';
 import SectionHeader from '@/components/ui/SectionHeader';
 
-export const metadata = { title: 'About Us' };
+export const metadata = {
+  title: 'About Us',
+  description: 'Learn about MASA Coders — our story, mission, values, and the passionate team behind every premium digital experience we create.',
+  openGraph: {
+    title: 'About MASA Coders',
+    description: 'A premium digital agency on a mission to transform how businesses connect with their audience.',
+  },
+};
 
 const values = [
   { icon: FiTarget, title: 'Excellence',   desc: 'We never settle for good enough. Every pixel, every line of code, every strategy is crafted to be exceptional.' },

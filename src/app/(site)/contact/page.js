@@ -1,7 +1,14 @@
 import ContactForm from './ContactForm';
 import { FiMail, FiPhone, FiMapPin, FiMessageCircle } from 'react-icons/fi';
 
-export const metadata = { title: 'Contact Us' };
+export const metadata = {
+  title: 'Contact Us',
+  description: 'Get in touch with MASA Coders. Start your project, request a free consultation, or reach us via email, phone, or WhatsApp.',
+  openGraph: {
+    title: 'Contact MASA Coders',
+    description: 'Ready to start your project? We respond within 24 hours.',
+  },
+};
 
 const contactInfo = [
   { icon: FiMail,    label: 'Email Us',       value: 'info@masacoders.tech',  href: 'mailto:info@masacoders.tech' },

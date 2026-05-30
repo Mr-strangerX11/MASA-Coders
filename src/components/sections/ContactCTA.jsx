@@ -46,7 +46,7 @@ export default function ContactCTA() {
             </a>
           </div>
 
-          <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm text-slate-500">
+          <div className="mt-10 flex flex-wrap justify-center gap-8 text-sm text-slate-500">
             {['Response within 24 hours', 'No obligations', 'Expert advice free'].map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center">
@@ -55,6 +55,20 @@ export default function ContactCTA() {
                 {item}
               </div>
             ))}
+          </div>
+
+          {/* Client portal sign-up nudge */}
+          <div className="mt-10 pt-8 border-t border-white/8">
+            <p className="text-slate-400 text-sm mb-4">Already working with us? Track your project live.</p>
+            <div className="flex items-center justify-center gap-4 flex-wrap">
+              <Link href="/signup" className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600/15 border border-emerald-600/25 text-emerald-400 rounded-xl text-sm font-semibold hover:bg-emerald-600/25 transition-all">
+                <span>Create Client Account</span>
+                <FiArrowRight className="w-4 h-4"/>
+              </Link>
+              <Link href="/client/login" className="text-slate-400 hover:text-white text-sm transition-colors">
+                Sign in to portal →
+              </Link>
+            </div>
           </div>
         </motion.div>
       </div>

@@ -57,14 +57,15 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function BlogDetailPage({ params }) {
-  const data = await getBlogPost(params.id);
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://masacoders.tech';
 
-  if (!data || !data.post) {
+export default async function BlogDetailPage({ params }) {
+  const post = await getBlogPost(params.id);
+
+  if (!post) {
     notFound();
   }
 
-  const post = data.post;
   const related = await getRelatedPosts(post._id, post.category);
 
   return (
@@ -184,9 +185,9 @@ export default async function BlogDetailPage({ params }) {
                 <h3 className="font-semibold text-slate-900 mb-3 text-sm">Share this article</h3>
                 <div className="flex gap-2">
                   {[
-                    { name: 'Twitter', url: `https://twitter.com/intent/tweet?url=${typeof window !== 'undefined' ? window.location.href : ''}` },
-                    { name: 'LinkedIn', url: `https://www.linkedin.com/sharing/share-offsite/?url=${typeof window !== 'undefined' ? window.location.href : ''}` },
-                    { name: 'Facebook', url: `https://www.facebook.com/sharer/sharer.php?u=${typeof window !== 'undefined' ? window.location.href : ''}` },
+                    { name: 'Twitter', url: `https://twitter.com/intent/tweet?url=${BASE_URL}/blog/${params.id}` },
+                    { name: 'LinkedIn', url: `https://www.linkedin.com/sharing/share-offsite/?url=${BASE_URL}/blog/${params.id}` },
+                    { name: 'Facebook', url: `https://www.facebook.com/sharer/sharer.php?u=${BASE_URL}/blog/${params.id}` },
                   ].map(({ name, url }) => (
                     <a
                       key={name}

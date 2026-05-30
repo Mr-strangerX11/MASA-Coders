@@ -4,7 +4,14 @@ import connectDB from '@/lib/mongodb';
 import Offer from '@/models/Offer';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Special Offers' };
+export const metadata = {
+  title: 'Special Offers',
+  description: 'Limited-time deals on premium digital services from MASA Coders. Web design, SEO, and digital marketing at exclusive prices.',
+  openGraph: {
+    title: 'Special Offers — MASA Coders',
+    description: "Don't miss these limited-time opportunities to get premium services at special prices.",
+  },
+};
 
 async function getOffers() {
   try {

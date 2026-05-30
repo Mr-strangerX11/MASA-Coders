@@ -19,7 +19,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const [scrolled, setScrolled]   = useState(false);
+  const [scrolled, setScrolled]     = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
@@ -53,6 +53,7 @@ export default function Navbar() {
               width={40}
               height={40}
               className="group-hover:scale-110 transition-transform"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <span className={cn(
               'font-display font-bold text-xl transition-colors',
@@ -62,7 +63,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop nav */}
+          {/* Desktop nav links */}
           <ul className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <li key={link.href}>
@@ -83,25 +84,25 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* CTA & Account */}
-          <div className="hidden lg:flex items-center gap-3">
+          {/* Desktop CTAs */}
+          <div className="hidden lg:flex items-center gap-2">
+            {/* Account icon → /login */}
             <Link
-              href="/admin/login"
+              href="/login"
               className={cn(
-                'p-2 rounded-lg transition-colors',
+                'flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200',
                 scrolled
-                  ? 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
+                  ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               )}
-              title="Admin Login"
+              title="Sign in"
             >
-              <FiUser className="w-5 h-5" />
+              <FiUser className="w-4 h-4"/>
             </Link>
-            <Link
-              href="/contact"
-              className="btn-primary text-sm px-5 py-2.5"
-            >
-              Start a Project <FiArrowRight className="w-4 h-4" />
+
+            {/* Sign Up CTA */}
+            <Link href="/signup" className="btn-primary text-sm px-5 py-2.5">
+              Get Started <FiArrowRight className="w-4 h-4"/>
             </Link>
           </div>
 
@@ -113,7 +114,7 @@ export default function Navbar() {
               scrolled ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'
             )}
           >
-            {mobileOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
+            {mobileOpen ? <FiX className="w-6 h-6"/> : <FiMenu className="w-6 h-6"/>}
           </button>
         </nav>
       </motion.header>
@@ -134,7 +135,7 @@ export default function Navbar() {
                   key={link.href}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
+                  transition={{ delay: i * 0.04 }}
                 >
                   <Link
                     href={link.href}
@@ -149,20 +150,24 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
               ))}
-              <div className="pt-3 border-t border-slate-200 space-y-2">
-                <Link href="/admin/login" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-all">
-                  <FiUser className="w-4 h-4" />
-                  Admin Login
+
+              <div className="pt-3 mt-2 border-t border-slate-200 space-y-2 px-2 pb-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:border-blue-400 hover:text-blue-600 transition-all"
+                >
+                  <FiUser size={14}/>
+                  Sign In
                 </Link>
-                <Link href="/contact" className="btn-primary w-full justify-center">
-                  Start a Project <FiArrowRight className="w-4 h-4" />
+                <Link href="/signup" onClick={() => setMobileOpen(false)} className="btn-primary w-full justify-center">
+                  Get Started <FiArrowRight className="w-4 h-4"/>
                 </Link>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
     </>
   );
 }

@@ -8,7 +8,15 @@ import { formatDate } from '@/lib/utils';
 import connectDB from '@/lib/mongodb';
 import BlogPost from '@/models/BlogPost';
 
-export const metadata = { title: 'Blog & Insights' };
+export const metadata = {
+  title: 'Blog & Insights',
+  description: 'Expert articles on web design, digital marketing, SEO, and business growth strategies from the MASA Coders team.',
+  openGraph: {
+    title: 'Blog & Insights — MASA Coders',
+    description: 'Expert knowledge on web design, digital marketing, and business growth strategies.',
+    type: 'website',
+  },
+};
 
 async function getPosts() {
   try {
