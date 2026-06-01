@@ -1,34 +1,42 @@
-import { Queue, Worker, QueueEvents } from 'bullmq';
-import { getRedis } from '@/lib/db/redis';
+/**
+ * Message queue — BullMQ-backed when REDIS_URL is set, no-op stub otherwise.
+ * Webhook routes call enqueueInbound to hand off processing without blocking
+ * the <200ms Meta webhook response window.
+ */
 
-const connection = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD || undefined,
-};
+let inboundQueue  = null;
+let outboundQueue = null;
 
-// ── Queue definitions ────────────────────────────────────────
-export const inboundQueue  = new Queue('inbound-messages',  { connection, defaultJobOptions: { attempts: 3, backoff: { type: 'exponential', delay: 2000 } } });
-export const aiQueue       = new Queue('ai-processing',     { connection, defaultJobOptions: { attempts: 2, backoff: { type: 'fixed', delay: 1000 } } });
-export const outboundQueue = new Queue('outbound-messages', { connection, defaultJobOptions: { attempts: 3, backoff: { type: 'exponential', delay: 1500 } } });
+function getQueues() {
+  if (!process.env.REDIS_URL) return { inbound: null, outbound: null };
+  if (inboundQueue) return { inbound: inboundQueue, outbound: outboundQueue };
 
-// ── Job creators ─────────────────────────────────────────────
+  try {
+    const { Queue } = require('bullmq');
+    const connection = { url: process.env.REDIS_URL, maxRetriesPerRequest: null };
+    inboundQueue  = new Queue('inbound-messages',  { connection });
+    outboundQueue = new Queue('outbound-messages', { connection });
+    return { inbound: inboundQueue, outbound: outboundQueue };
+  } catch (err) {
+    console.warn('[queue] BullMQ unavailable:', err.message);
+    return { inbound: null, outbound: null };
+  }
+}
+
 export async function enqueueInbound(payload) {
-  return inboundQueue.add('process', payload, { removeOnComplete: 100, removeOnFail: 50 });
+  const { inbound } = getQueues();
+  if (!inbound) {
+    console.log('[queue] No Redis — inbound message dropped. Set REDIS_URL to enable.');
+    return;
+  }
+  await inbound.add('process', payload, { attempts: 3, backoff: { type: 'exponential', delay: 2000 } });
 }
 
-export async function enqueueAI(conversationId, messageId, mode) {
-  return aiQueue.add('suggest', { conversationId, messageId, mode }, { removeOnComplete: 100, removeOnFail: 50 });
-}
-
-export async function enqueueOutbound(platform, recipientId, message, conversationId) {
-  return outboundQueue.add('send', { platform, recipientId, message, conversationId }, { removeOnComplete: 200, removeOnFail: 100 });
-}
-
-// ── Queue event monitors (for logging) ──────────────────────
-if (typeof window === 'undefined' && process.env.NODE_ENV !== 'test') {
-  const events = new QueueEvents('inbound-messages', { connection });
-  events.on('failed', ({ jobId, failedReason }) =>
-    console.error(`[Queue] inbound job ${jobId} failed: ${failedReason}`)
-  );
+export async function enqueueOutbound(payload) {
+  const { outbound } = getQueues();
+  if (!outbound) {
+    console.log('[queue] No Redis — outbound message dropped. Set REDIS_URL to enable.');
+    return;
+  }
+  await outbound.add('send', payload, { attempts: 3, backoff: { type: 'exponential', delay: 2000 } });
 }
