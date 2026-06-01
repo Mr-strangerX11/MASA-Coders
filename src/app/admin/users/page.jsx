@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import {
   FiUsers, FiSearch, FiCheck, FiX, FiShield, FiUserCheck,
   FiUserX, FiRefreshCw, FiChevronLeft, FiChevronRight,
-  FiMail, FiBriefcase, FiPhone, FiClock,
+  FiMail, FiBriefcase, FiPhone, FiClock, FiTrash2, FiAlertTriangle,
 } from 'react-icons/fi';
 
 const STATUS_TABS = [
@@ -106,6 +106,8 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [search, setSearch]       = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(null); // user object to delete
+  const [deleting, setDeleting]   = useState(false);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -160,6 +162,21 @@ export default function AdminUsersPage() {
     if (!res.ok) { toast.error(data.error); return; }
     toast.success(next ? 'User activated' : 'User deactivated');
     updateUser(data.user);
+  }
+
+  async function hardDelete(user) {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/users?userId=${user._id}&hard=true`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error || 'Delete failed.'); return; }
+      toast.success(`${user.name} deleted permanently.`);
+      setUsers(prev => prev.filter(u => u._id !== user._id));
+      setTotal(t => t - 1);
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(null);
+    }
   }
 
   const pendingCount = users.filter(u => !u.isVerified && u.isActive).length;
@@ -346,11 +363,20 @@ export default function AdminUsersPage() {
                           title={user.isActive ? 'Deactivate user' : 'Activate user'}
                           className={`p-1.5 rounded-lg border transition-all ${
                             user.isActive
-                              ? 'bg-white/5 border-white/10 text-slate-400 hover:text-red-400 hover:border-red-500/30'
+                              ? 'bg-white/5 border-white/10 text-slate-400 hover:text-amber-400 hover:border-amber-500/30'
                               : 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20'
                           }`}
                         >
                           {user.isActive ? <FiUserX size={13}/> : <FiShield size={13}/>}
+                        </button>
+
+                        {/* Delete */}
+                        <button
+                          onClick={() => setConfirmDelete(user)}
+                          title="Delete user permanently"
+                          className="p-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/5 transition-all"
+                        >
+                          <FiTrash2 size={13}/>
                         </button>
                       </div>
                     </td>
@@ -387,6 +413,72 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
+
+      {/* ── Delete confirmation modal ── */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+              onClick={() => !deleting && setConfirmDelete(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/25 flex items-center justify-center shrink-0">
+                    <FiAlertTriangle size={18} className="text-red-400"/>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-base">Delete User</h3>
+                    <p className="text-slate-500 text-xs">This action cannot be undone.</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 border border-white/8 rounded-xl p-3 mb-5">
+                  <div className="text-white font-semibold text-sm">{confirmDelete.name}</div>
+                  <div className="text-slate-400 text-xs mt-0.5">{confirmDelete.email}</div>
+                  <div className="flex gap-2 mt-2">
+                    <span className="px-2 py-0.5 rounded-md bg-slate-500/15 text-slate-400 border border-slate-500/20 text-[11px] font-semibold">{confirmDelete.role}</span>
+                  </div>
+                </div>
+
+                <p className="text-slate-400 text-sm mb-5">
+                  Permanently delete <strong className="text-white">{confirmDelete.name}</strong>? All their data will be removed from the database.
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmDelete(null)}
+                    disabled={deleting}
+                    className="flex-1 py-2.5 rounded-xl border border-white/10 text-slate-400 text-sm font-medium hover:bg-white/5 transition-all disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => hardDelete(confirmDelete)}
+                    disabled={deleting}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {deleting
+                      ? <span className="w-4 h-4 border-2 border-white/25 border-t-white rounded-full animate-spin"/>
+                      : <><FiTrash2 size={13}/> Delete Permanently</>
+                    }
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

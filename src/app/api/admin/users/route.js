@@ -74,7 +74,9 @@ export async function PATCH(request) {
   }
 }
 
-// DELETE /api/admin/users — deactivate (soft delete) a user
+// DELETE /api/admin/users — hard delete or soft deactivate
+// ?userId=xxx&hard=true  → permanently delete
+// ?userId=xxx            → deactivate only
 export async function DELETE(request) {
   try {
     const decoded = await requireAdmin(request);
@@ -83,7 +85,19 @@ export async function DELETE(request) {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const hard   = searchParams.get('hard') === 'true';
     if (!userId) return NextResponse.json({ error: 'userId required.' }, { status: 400 });
+
+    // Prevent deleting own account
+    if (userId === decoded.id) {
+      return NextResponse.json({ error: 'You cannot delete your own account.' }, { status: 400 });
+    }
+
+    if (hard) {
+      const user = await User.findByIdAndDelete(userId);
+      if (!user) return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+      return NextResponse.json({ ok: true, deleted: true });
+    }
 
     const user = await User.findByIdAndUpdate(userId, { isActive: false }, { new: true })
       .select('-password -resetPasswordToken -otp -otpExpiry');
