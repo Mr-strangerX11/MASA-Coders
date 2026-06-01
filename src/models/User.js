@@ -46,8 +46,14 @@ const UserSchema = new mongoose.Schema({
   lastSeenAt:  { type: Date },
 }, { timestamps: true });
 
-UserSchema.index({ role: 1, isActive: 1 });
-UserSchema.index({ department: 1, role: 1 });
+// Auth lookup: findOne({ email, role }) — most frequent query path
+UserSchema.index({ email: 1, role: 1 });
+// Portal list: role + active + sort createdAt
+UserSchema.index({ role: 1, isActive: 1, createdAt: -1 });
+// Admin pending-verification tab
+UserSchema.index({ isVerified: 1, isActive: 1, createdAt: -1 });
+// Staff management
+UserSchema.index({ department: 1, role: 1, isActive: 1 });
 
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

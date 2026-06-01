@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { signToken, setAuthCookie, requireStaff } from '@/lib/auth';
 import { rateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/apiHelpers';
 
 // POST /api/staff/auth?action=login|logout
 export async function POST(request) {
@@ -19,7 +20,7 @@ export async function POST(request) {
 
   if (action === 'login') {
     try {
-      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      const ip = getClientIp(request);
       const limited = await rateLimit(`staff-login:${ip}`, 10, 900);
       if (!limited.ok) return NextResponse.json({ error: 'Too many attempts. Try again in 15 minutes.' }, { status: 429 });
 

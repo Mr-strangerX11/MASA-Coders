@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { signToken, setAuthCookie, requireClient } from '@/lib/auth';
 import { rateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/apiHelpers';
 
 // POST /api/client/auth — login or register action via ?action=login|register|logout|me
 export async function POST(request) {
@@ -20,7 +21,7 @@ export async function POST(request) {
     const body = await request.json();
 
     if (action === 'register') {
-      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      const ip = getClientIp(request);
       const limited = await rateLimit(`register:${ip}`, 5, 3600);
       if (!limited.ok) return NextResponse.json({ error: 'Too many registrations. Try again later.' }, { status: 429 });
 
@@ -39,7 +40,7 @@ export async function POST(request) {
     }
 
     if (action === 'login') {
-      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      const ip = getClientIp(request);
       const limited = await rateLimit(`login:${ip}`, 10, 900);
       if (!limited.ok) return NextResponse.json({ error: 'Too many attempts. Try again in 15 minutes.' }, { status: 429 });
 

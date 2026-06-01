@@ -1,88 +1,65 @@
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { ADMIN_ROLES, STAFF_ROLES, ALL_ROLES, getCookieName } from '@/lib/roles';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET  = process.env.JWT_SECRET;
 if (!JWT_SECRET) throw new Error('JWT_SECRET environment variable is not set');
 const JWT_EXPIRES = '7d';
 
-const ADMIN_ROLES = ['admin', 'editor', 'manager'];
-
-const ROLE_COOKIE = {
-  admin:   'admin_token',
-  editor:  'admin_token',
-  manager: 'admin_token',
-  staff:   'staff_token',
-  client:  'client_token',
-};
+// ── Token helpers ─────────────────────────────────────────────────────────────
 
 export function signToken(payload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 }
 
 export function verifyToken(token) {
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch {
-    return null;
-  }
+  try { return jwt.verify(token, JWT_SECRET); }
+  catch { return null; }
 }
 
-export function getCookieName(role) {
-  return ROLE_COOKIE[role] || 'client_token';
-}
-
-export function isAdminRole(role) {
-  return ADMIN_ROLES.includes(role);
-}
+// ── Cookie helpers ────────────────────────────────────────────────────────────
 
 export function setAuthCookie(token, role = 'admin') {
-  const cookieStore = cookies();
-  cookieStore.set(getCookieName(role), token, {
+  cookies().set(getCookieName(role), token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure:   process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-    path: '/',
+    maxAge:   60 * 60 * 24 * 7, // 7 days
+    path:     '/',
   });
 }
 
 export function clearAuthCookie(role = 'admin') {
-  const cookieStore = cookies();
-  cookieStore.delete(getCookieName(role));
+  cookies().delete(getCookieName(role));
 }
 
-export function getTokenFromRequest(request, cookieName = 'admin_token') {
-  const authHeader = request.headers.get('Authorization');
-  if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7);
-  const cookieStore = cookies();
-  return cookieStore.get(cookieName)?.value || null;
+// ── Request authentication ────────────────────────────────────────────────────
+
+function getTokenFromRequest(request, cookieName) {
+  const bearer = request.headers.get('Authorization');
+  if (bearer?.startsWith('Bearer ')) return bearer.slice(7);
+  return request.cookies?.get?.(cookieName)?.value ?? cookies().get(cookieName)?.value ?? null;
 }
 
-// Generic: requires one of the specified roles
-export async function requireAuth(request, allowedRoles = ADMIN_ROLES) {
-  const cookiesToTry = [...new Set(allowedRoles.map(r => getCookieName(r)))];
-  for (const cookieName of cookiesToTry) {
-    const token = getTokenFromRequest(request, cookieName);
-    if (token) {
-      const decoded = verifyToken(token);
-      if (decoded && allowedRoles.includes(decoded.role)) return decoded;
-    }
+export async function requireAuth(request, allowedRoles) {
+  // Deduplicate cookie names — admin/editor/manager all share admin_token
+  const seen = new Set();
+  for (const role of allowedRoles) {
+    const cookieName = getCookieName(role);
+    if (seen.has(cookieName)) continue;
+    seen.add(cookieName);
+
+    const token   = getTokenFromRequest(request, cookieName);
+    const decoded = verifyToken(token);
+    if (decoded && allowedRoles.includes(decoded.role)) return decoded;
   }
   return null;
 }
 
-export async function requireAdmin(request) {
-  return requireAuth(request, ADMIN_ROLES);
-}
+export const requireAdmin  = (req) => requireAuth(req, ADMIN_ROLES);
+export const requireStaff  = (req) => requireAuth(req, STAFF_ROLES);
+export const requireClient = (req) => requireAuth(req, [...ADMIN_ROLES, 'client']);
+export const requireAnyAuth= (req) => requireAuth(req, ALL_ROLES);
 
-export async function requireStaff(request) {
-  return requireAuth(request, [...ADMIN_ROLES, 'staff']);
-}
-
-export async function requireClient(request) {
-  return requireAuth(request, [...ADMIN_ROLES, 'client']);
-}
-
-export async function requireAnyAuth(request) {
-  return requireAuth(request, ['admin', 'editor', 'manager', 'staff', 'client']);
-}
+// Re-export for consumers that import from auth.js
+export { getCookieName, ADMIN_ROLES, STAFF_ROLES };

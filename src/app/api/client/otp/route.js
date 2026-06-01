@@ -4,29 +4,35 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { signToken, setAuthCookie } from '@/lib/auth';
 import { rateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/apiHelpers';
 import { emailWelcomeClient } from '@/lib/sendPlatformEmail';
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
-function makeTransport() {
+// Singleton transport — created once, reused across requests (avoids TCP handshake per OTP)
+let _transport = null;
+function getTransport() {
+  if (_transport) return _transport;
   const user = process.env.EMAIL_USER || process.env.EMAIL_FROM;
   const pass = process.env.EMAIL_PASSWORD;
   const host = process.env.EMAIL_HOST;
 
-  // Gmail: prefer the service shorthand — handles auth quirks automatically
-  if (!host || host === 'smtp.gmail.com') {
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass },
-    });
-  }
+  _transport = (!host || host === 'smtp.gmail.com')
+    ? nodemailer.createTransport({ service: 'gmail', auth: { user, pass } })
+    : nodemailer.createTransport({
+        host,
+        port:   parseInt(process.env.EMAIL_PORT) || 587,
+        secure: process.env.EMAIL_SECURE === 'true',
+        auth:   { user, pass },
+        tls:    { rejectUnauthorized: process.env.NODE_ENV === 'production' },
+      });
 
-  return nodemailer.createTransport({
-    host,
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: process.env.EMAIL_SECURE === 'true',
-    auth: { user, pass },
-    tls: { rejectUnauthorized: false },
-  });
+  return _transport;
+}
+
+// Cryptographically secure 6-digit OTP (uniform distribution, no Math.random bias)
+function generateOtp() {
+  return String(crypto.randomInt(100_000, 1_000_000));
 }
 
 // Throws on failure — caller decides how to handle
@@ -35,7 +41,7 @@ async function sendOtpEmail(email, otp, name) {
   if (!user) throw new Error('Email not configured. Set EMAIL_USER in .env.local');
 
   const from = `"MASA Coders" <${user}>`;
-  const transport = makeTransport();
+  const transport = getTransport();
 
   await transport.sendMail({
     from,
@@ -71,7 +77,7 @@ export async function POST(request) {
 
   if (action === 'send') {
     try {
-      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      const ip = getClientIp(request);
       const limited = await rateLimit(`otp-send:${ip}`, 5, 600);
       if (!limited.ok) return NextResponse.json({ error: 'Too many OTP requests. Try again later.' }, { status: 429 });
 
@@ -83,8 +89,8 @@ export async function POST(request) {
       if (!user) return NextResponse.json({ error: 'Account not found.' }, { status: 404 });
       if (user.isVerified) return NextResponse.json({ error: 'Email already verified. Please sign in.' }, { status: 400 });
 
-      const otp    = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      const otp    = generateOtp();
+      const expiry = new Date(Date.now() + 10 * 60 * 1_000); // 10 minutes
 
       user.otp       = otp;
       user.otpExpiry = expiry;
@@ -108,7 +114,7 @@ export async function POST(request) {
 
   if (action === 'verify') {
     try {
-      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      const ip = getClientIp(request);
       const limited = await rateLimit(`otp-verify:${ip}`, 10, 600);
       if (!limited.ok) return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 });
 
