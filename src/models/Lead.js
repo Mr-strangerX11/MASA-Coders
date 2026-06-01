@@ -16,7 +16,10 @@ const LeadSchema = new mongoose.Schema({
   isRead:          { type: Boolean, default: false },
 }, { timestamps: true });
 
-LeadSchema.index({ status: 1, createdAt: -1 });
+LeadSchema.index({ status: 1, createdAt: -1 });     // pipeline board — most common query
+LeadSchema.index({ source: 1, createdAt: -1 });     // filter by source (contact_form etc.)
+LeadSchema.index({ isRead: 1 });                     // unread leads badge count
+LeadSchema.index({ contact_email: 1 }, { sparse: true }); // de-dupe check on email
 
 LeadSchema.methods.toJSON = function () {
   const obj = this.toObject({ virtuals: true });

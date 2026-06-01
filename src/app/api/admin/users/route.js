@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { requireAdmin } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+import { ALL_ROLES } from '@/lib/roles';
+
 
 // GET /api/admin/users — list users (role, status, search, pagination)
 export async function GET(request) {
@@ -40,7 +43,7 @@ export async function GET(request) {
 
     return NextResponse.json({ users, total, page, pages: Math.ceil(total / limit) });
   } catch (err) {
-    console.error('Admin users GET error:', err);
+    logger.error('Admin users GET', { error: err.message });
     return NextResponse.json({ error: 'Server error.' }, { status: 500 });
   }
 }
@@ -62,6 +65,10 @@ export async function PATCH(request) {
     if (!Object.keys(safeUpdates).length) {
       return NextResponse.json({ error: 'No valid fields to update.' }, { status: 400 });
     }
+    // Validate role is a known value — reject arbitrary strings
+    if (safeUpdates.role && !ALL_ROLES.includes(safeUpdates.role)) {
+      return NextResponse.json({ error: `Invalid role. Must be one of: ${ALL_ROLES.join(', ')}` }, { status: 400 });
+    }
 
     const user = await User.findByIdAndUpdate(userId, safeUpdates, { new: true })
       .select('-password -resetPasswordToken -otp -otpExpiry -bankDetails');
@@ -69,7 +76,7 @@ export async function PATCH(request) {
 
     return NextResponse.json({ ok: true, user });
   } catch (err) {
-    console.error('Admin users PATCH error:', err);
+    logger.error('Admin users PATCH', { error: err.message });
     return NextResponse.json({ error: 'Server error.' }, { status: 500 });
   }
 }
@@ -105,7 +112,7 @@ export async function DELETE(request) {
 
     return NextResponse.json({ ok: true, user });
   } catch (err) {
-    console.error('Admin users DELETE error:', err);
+    logger.error('Admin users DELETE', { error: err.message });
     return NextResponse.json({ error: 'Server error.' }, { status: 500 });
   }
 }

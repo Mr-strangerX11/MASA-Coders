@@ -14,6 +14,8 @@ const InquirySchema = new mongoose.Schema({
   ip:      { type: String, default: '' },
 }, { timestamps: true });
 
-InquirySchema.index({ isRead: 1, createdAt: -1 });
+InquirySchema.index({ isRead: 1, createdAt: -1 });      // admin inbox list
+InquirySchema.index({ isReplied: 1, createdAt: -1 });   // follow-up filter
+InquirySchema.index({ email: 1 });                       // look up by contact email
 
 export default mongoose.models.Inquiry || mongoose.model('Inquiry', InquirySchema);
