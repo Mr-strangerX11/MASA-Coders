@@ -1,7 +1,9 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth';
-import { queryOne } from '@/lib/db/postgres';
+import connectDB from '@/lib/mongodb';
+import Lead from '@/models/Lead';
 
 function isAdmin() {
   const token = cookies().get('admin_token')?.value;
@@ -10,35 +12,27 @@ function isAdmin() {
 
 export async function GET(request, { params }) {
   if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const lead = await queryOne(
-    `SELECT l.*, c.name as contact_name, c.email as contact_email, c.phone as contact_phone,
-            cv.platform, cv.last_message_at, cv.intent, cv.sentiment
-     FROM leads l
-     JOIN contacts c ON c.id = l.contact_id
-     LEFT JOIN conversations cv ON cv.id = l.conversation_id
-     WHERE l.id = $1`,
-    [params.id]
-  );
+  await connectDB();
+  const lead = await Lead.findById(params.id).lean();
   if (!lead) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  return NextResponse.json({ lead });
+  return NextResponse.json({ lead: { ...lead, id: lead._id.toString() } });
 }
 
 export async function PUT(request, { params }) {
   if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  await connectDB();
   const updates = await request.json();
-  const allowed = ['status', 'pipeline_stage', 'priority', 'company_name', 'assigned_to', 'estimated_value', 'notes', 'follow_up_at', 'converted_at', 'tags'];
-  const sets = [], vals = [];
-  for (const key of allowed) {
-    if (updates[key] !== undefined) { vals.push(updates[key]); sets.push(`${key} = $${vals.length}`); }
-  }
-  if (!sets.length) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
-  vals.push(params.id);
-  const lead = await queryOne(`UPDATE leads SET ${sets.join(', ')}, updated_at = NOW() WHERE id = $${vals.length} RETURNING *`, vals);
-  return NextResponse.json({ lead });
+  const allowed = ['status', 'priority', 'company_name', 'estimated_value', 'notes', 'contact_name', 'contact_email', 'contact_phone', 'service', 'budget', 'isRead'];
+  const safeUpdates = Object.fromEntries(Object.entries(updates).filter(([k]) => allowed.includes(k)));
+  if (!Object.keys(safeUpdates).length) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
+  const lead = await Lead.findByIdAndUpdate(params.id, safeUpdates, { new: true }).lean();
+  if (!lead) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  return NextResponse.json({ lead: { ...lead, id: lead._id.toString() } });
 }
 
 export async function DELETE(request, { params }) {
   if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  await queryOne(`DELETE FROM leads WHERE id = $1`, [params.id]);
-  return NextResponse.json({ success: true });
+  await connectDB();
+  await Lead.findByIdAndDelete(params.id);
+  return NextResponse.json({ ok: true });
 }

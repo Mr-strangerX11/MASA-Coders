@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Inquiry from '@/models/Inquiry';
+import Lead from '@/models/Lead';
 import { verifyToken } from '@/lib/auth';
 import { sendEmail } from '@/lib/email';
 import { cookies } from 'next/headers';
@@ -55,6 +56,19 @@ export async function POST(request) {
     }
     
     const inquiry = await Inquiry.create({ ...data, ip });
+
+    // Auto-create a CRM lead from every contact form submission
+    Lead.create({
+      contact_name:  name,
+      contact_email: email,
+      contact_phone: data.phone   || '',
+      service:       data.service || '',
+      budget:        data.budget  || '',
+      message:       message,
+      source:        'contact_form',
+      status:        'new',
+      priority:      'medium',
+    }).catch(() => {});
 
     // Send thank you email to the user
     const emailResult = await sendEmail(

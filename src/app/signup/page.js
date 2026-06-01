@@ -192,6 +192,15 @@ export default function SignupPage() {
   // ?verify=1 redirect from login — no useSearchParams needed
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    // Pre-fill from contact form redirect
+    if (params.get('from') === 'contact') {
+      try {
+        const prefill = JSON.parse(sessionStorage.getItem('signup_prefill') || '{}');
+        sessionStorage.removeItem('signup_prefill');
+        if (prefill.name || prefill.email) setForm(p => ({ ...p, ...prefill }));
+      } catch { /**/ }
+    }
+
     if (params.get('verify') !== '1') return;
     const email = sessionStorage.getItem('verify_email');
     if (!email) return;
