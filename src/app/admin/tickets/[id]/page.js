@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { FiArrowLeft, FiSend, FiLock } from 'react-icons/fi';
+import { FiArrowLeft, FiSend, FiLock, FiZap } from 'react-icons/fi';
 
 const STATUS_COLORS = { open:'bg-blue-500/15 text-blue-400', in_progress:'bg-yellow-500/15 text-yellow-400', resolved:'bg-emerald-500/15 text-emerald-400', closed:'bg-slate-500/15 text-slate-400' };
 const STATUSES = ['open','in_progress','waiting_client','resolved','closed'];
@@ -15,8 +15,9 @@ export default function AdminTicketDetailPage() {
   const [loading, setLoading] = useState(true);
   const [reply, setReply]     = useState('');
   const [isInternal, setIsInternal] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [staff, setStaff]     = useState([]);
+  const [sending, setSending]   = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [staff, setStaff]       = useState([]);
   const bottomRef = useRef(null);
 
   async function loadTicket() {
@@ -118,6 +119,26 @@ export default function AdminTicketDetailPage() {
               className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg transition-colors ${isInternal?'bg-orange-500/15 text-orange-400 border border-orange-500/20':'bg-white/5 text-slate-400 hover:text-white'}`}
             >
               <FiLock size={11}/> {isInternal?'Internal note':'Reply to client'}
+            </button>
+            {/* AI Reply suggestion */}
+            <button type="button" disabled={aiLoading}
+              onClick={async () => {
+                const msgs = t.messages || [];
+                const last = msgs.filter(m => !m.isInternal).slice(-1)[0];
+                if (!last) { toast.error('No client message to reply to.'); return; }
+                setAiLoading(true);
+                try {
+                  const res  = await fetch('/api/ai/reply', { method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ ticketTitle: t.subject, lastMessage: last.content, clientName: t.clientId?.name }) });
+                  const data = await res.json();
+                  if (!res.ok) { toast.error(data.error); return; }
+                  setReply(data.reply);
+                  toast.success('AI reply drafted!');
+                } finally { setAiLoading(false); }
+              }}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-colors disabled:opacity-50"
+            >
+              <FiZap size={11}/> {aiLoading ? 'Drafting…' : 'AI Draft'}
             </button>
           </div>
           <div className="flex gap-3">

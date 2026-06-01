@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { FiPlus, FiLoader, FiRefreshCw, FiX, FiCheck } from 'react-icons/fi';
+import { FiPlus, FiLoader, FiRefreshCw, FiX, FiCheck, FiDownload } from 'react-icons/fi';
 import LeadCard from './LeadCard';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
@@ -99,6 +99,9 @@ export default function LeadPipeline() {
           <p className="text-slate-500 text-xs">{leads.length} leads total</p>
         </div>
         <div className="flex items-center gap-2">
+          <a href="/api/export?type=leads" download
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 text-xs font-medium hover:text-white transition-colors"
+          ><FiDownload className="w-3.5 h-3.5" /> Export</a>
           <button onClick={load} className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-500 hover:text-white transition-colors">
             <FiRefreshCw className="w-3.5 h-3.5" />
           </button>
@@ -143,7 +146,7 @@ export default function LeadPipeline() {
                         onDragStart={(e) => onDragStart(e, lead.id)}
                         className="cursor-grab active:cursor-grabbing"
                       >
-                        <LeadCard lead={lead} onEdit={openEdit} onDelete={handleDelete} />
+                        <LeadCard lead={lead} onEdit={openEdit} onDelete={handleDelete} onScored={load} />
                       </div>
                     ))}
                     {stageleads.length === 0 && (

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { FiMoreVertical, FiMail, FiPhone, FiMessageSquare, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import { FiMoreVertical, FiMail, FiPhone, FiMessageSquare, FiTrash2, FiEdit2, FiZap } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 import PlatformIcon from '@/components/inbox/PlatformIcon';
 import { cn } from '@/lib/utils';
 
@@ -20,8 +21,9 @@ function timeAgo(ts) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export default function LeadCard({ lead, onEdit, onDelete, onMove }) {
+export default function LeadCard({ lead, onEdit, onDelete, onMove, onScored }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scoring, setScoring]   = useState(false);
   const priority = lead.priority || 'medium';
 
   return (
@@ -55,6 +57,19 @@ export default function LeadCard({ lead, onEdit, onDelete, onMove }) {
               <button onClick={() => { setMenuOpen(false); onEdit?.(lead); }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-xs text-slate-300 hover:bg-white/5 hover:text-white transition-colors">
                 <FiEdit2 className="w-3 h-3" /> Edit
+              </button>
+              <button onClick={async () => {
+                  setMenuOpen(false); setScoring(true);
+                  try {
+                    const res  = await fetch('/api/ai/score-lead', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ leadId: lead.id }) });
+                    const data = await res.json();
+                    if (!res.ok) { toast.error(data.error || 'Score failed'); return; }
+                    toast.success(`Lead scored ${data.score}/10`);
+                    onScored?.();
+                  } finally { setScoring(false); }
+                }}
+                className="flex items-center gap-2 w-full px-3 py-2 text-xs text-violet-400 hover:bg-violet-500/10 transition-colors">
+                <FiZap className="w-3 h-3" /> {scoring ? 'Scoring…' : 'AI Score'}
               </button>
               <button onClick={() => { setMenuOpen(false); onDelete?.(lead.id); }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 transition-colors">

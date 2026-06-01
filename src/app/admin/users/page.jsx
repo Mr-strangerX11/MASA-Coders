@@ -6,6 +6,7 @@ import {
   FiUsers, FiSearch, FiCheck, FiX, FiShield, FiUserCheck,
   FiUserX, FiRefreshCw, FiChevronLeft, FiChevronRight,
   FiMail, FiBriefcase, FiPhone, FiClock, FiTrash2, FiAlertTriangle,
+  FiDownload, FiCheckSquare,
 } from 'react-icons/fi';
 
 const STATUS_TABS = [
@@ -106,8 +107,10 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [search, setSearch]       = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [confirmDelete, setConfirmDelete] = useState(null); // user object to delete
-  const [deleting, setDeleting]   = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleting, setDeleting]     = useState(false);
+  const [selected, setSelected]     = useState(new Set());
+  const [bulkAction, setBulkAction] = useState('');
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -179,6 +182,26 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function executeBulkAction() {
+    if (!bulkAction || selected.size === 0) return;
+    const ids = [...selected];
+    const updates =
+      bulkAction === 'verify'     ? { isVerified: true }  :
+      bulkAction === 'unverify'   ? { isVerified: false } :
+      bulkAction === 'activate'   ? { isActive: true }    :
+      bulkAction === 'deactivate' ? { isActive: false }   : null;
+
+    if (updates) {
+      await Promise.all(ids.map(userId =>
+        fetch('/api/admin/users', { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, updates }) })
+      ));
+      toast.success(`${ids.length} users updated.`);
+      setSelected(new Set()); setBulkAction('');
+      fetchUsers();
+    }
+  }
+
   const pendingCount = users.filter(u => !u.isVerified && u.isActive).length;
 
   return (
@@ -192,13 +215,18 @@ export default function AdminUsersPage() {
           </h1>
           <p className="text-slate-400 text-sm mt-0.5">{total} total users</p>
         </div>
-        <button
-          onClick={fetchUsers}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-medium transition-all"
-        >
-          <FiRefreshCw size={14}/>
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <a href="/api/export?type=users" download
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-medium transition-all"
+          >
+            <FiDownload size={14}/> Export CSV
+          </a>
+          <button onClick={fetchUsers}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-medium transition-all"
+          >
+            <FiRefreshCw size={14}/> Refresh
+          </button>
+        </div>
       </div>
 
       {/* Status tabs */}
@@ -243,6 +271,29 @@ export default function AdminUsersPage() {
         </select>
       </div>
 
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-blue-600/10 border border-blue-500/20 rounded-xl">
+          <FiCheckSquare size={14} className="text-blue-400"/>
+          <span className="text-blue-300 text-sm font-medium">{selected.size} selected</span>
+          <select value={bulkAction} onChange={e => setBulkAction(e.target.value)}
+            className="ml-auto bg-white/5 border border-white/10 text-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+          >
+            <option value="">Choose action…</option>
+            <option value="verify">Verify all</option>
+            <option value="unverify">Unverify all</option>
+            <option value="activate">Activate all</option>
+            <option value="deactivate">Deactivate all</option>
+          </select>
+          <button onClick={executeBulkAction} disabled={!bulkAction}
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg disabled:opacity-40 transition-all"
+          >Apply</button>
+          <button onClick={() => setSelected(new Set())}
+            className="text-slate-500 hover:text-slate-300 text-xs transition-colors"
+          >Clear</button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-[#161b27] border border-white/8 rounded-2xl overflow-hidden">
         {loading ? (
@@ -261,6 +312,12 @@ export default function AdminUsersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/5 text-slate-500 text-xs uppercase tracking-wide">
+                  <th className="px-4 py-3 w-8">
+                    <input type="checkbox" className="accent-blue-600"
+                      checked={users.length > 0 && users.every(u => selected.has(u._id))}
+                      onChange={e => setSelected(e.target.checked ? new Set(users.map(u => u._id)) : new Set())}
+                    />
+                  </th>
                   <th className="text-left px-5 py-3 font-medium">User</th>
                   <th className="text-left px-4 py-3 font-medium">Contact</th>
                   <th className="text-left px-4 py-3 font-medium">Role</th>
@@ -278,6 +335,17 @@ export default function AdminUsersPage() {
                     transition={{ delay: i * 0.03 }}
                     className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors"
                   >
+                    {/* Checkbox */}
+                    <td className="px-4 py-3.5 w-8">
+                      <input type="checkbox" className="accent-blue-600"
+                        checked={selected.has(user._id)}
+                        onChange={e => setSelected(prev => {
+                          const next = new Set(prev);
+                          e.target.checked ? next.add(user._id) : next.delete(user._id);
+                          return next;
+                        })}
+                      />
+                    </td>
                     {/* User */}
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">

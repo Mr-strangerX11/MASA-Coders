@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fi';
 import { cn } from '@/lib/utils';
 import NotificationBell from '@/components/ui/NotificationBell';
+import CommandPalette from '@/components/admin/CommandPalette';
 
 const GROUPS = [
   {
@@ -88,6 +89,11 @@ export default function AdminSidebar() {
           </div>
         </Link>
         <NotificationBell portalColor="blue"/>
+      </div>
+
+      {/* Command palette search */}
+      <div className="px-3 py-2 border-b border-white/5">
+        <CommandPalette />
       </div>
 
       {/* Navigation */}
